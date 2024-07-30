@@ -12,7 +12,7 @@ const YatriVerification = () => {
     if (name && registration) {
       setError(''); // Clear any previous errors
       try {
-        const response = await fetch('http://localhost:8000/api/yatra/fetch', {
+        const response = await fetch('http://16.16.187.232/api/yatra/fetch', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
