@@ -139,7 +139,7 @@ const ShivkhoriRegistration = () => {
         formDataToSend.append('aadharBack', formData.aadharBack);
     
         try {
-            const response = await fetch('http://localhost:8000/api/yatra/submit', {
+            const response = await fetch('http://16.16.187.232/api/yatra/submit', {
                 method: 'POST',
                 body: formDataToSend,
             });
