@@ -1,0 +1,75 @@
+/* ThankYou.module.css */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #4CAF50, #81C784); /* Gradient background */
+}
+header {
+    background-color: #f9f9f9;
+    border-bottom: 2px solid #ccc;
+    width: 100%;
+    padding: 10px 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+header img {
+    max-height: 80px;
+    width: 95%;
+    height: 450px;
+}
+.thankYouContainer {
+    text-align: center;
+    background: #fff;
+    padding: 30px;
+    margin: 80px auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 90%;
+    width: 500px;
+}
+h1 {
+    color: #4CAF50;
+    font-size: 2rem;
+    margin-top: 0;
+}
+p {
+    color: #333;
+    font-size: 1rem;
+    margin-bottom: 0;
+}
+.printButton {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 20px;
+}
+.printButton:hover {
+    background-color: #45a049;
+}
+footer {
+    background-color: #f9f9f9;
+    border-top: 2px solid #ccc;
+    padding: 10px 20px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-top: auto;
+}
+@media (max-width: 600px) {
+    .thankYouContainer {
+        padding: 20px;
+        width: 90%;
+    }
+    h1 {
+        font-size: 1.5rem;
+    }
+    p {
+        font-size: 0.9rem;
+    }
+}
