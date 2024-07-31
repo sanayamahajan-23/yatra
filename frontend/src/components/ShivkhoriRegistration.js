@@ -1,6 +1,6 @@
 import React, { useEffect,useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import styles from './ThankYou.module.css';
 const ShivkhoriRegistration = () => {
     const stateDistrictData = {
         "Andhra Pradesh": ["Anantapur", "Chittoor", "East Godavari", "Guntur", "Kadapa", "Krishna", "Kurnool", "Nellore", "Prakasam", "Srikakulam", "Visakhapatnam", "Vizianagaram", "West Godavari"],
@@ -159,8 +159,13 @@ const ShivkhoriRegistration = () => {
     };
 
     return (
+       
         <div className="container">
-            <h1>Shiv Khori Yatra Registration</h1>
+            <div> 
+            <header className={styles.header}>
+        <img src="https://www.shivkhori.in/images/logo.png" alt="Shiv Khori Logo" />
+      </header>
+      <h1>Shiv Khori Yatra Registration</h1>
             <form onSubmit={handleSubmit}>
                 <label htmlFor="name">Name:</label>
                 <input type="text" id="name" name="name" value={formData.name} onChange={handleInputChange} required />
@@ -258,8 +263,12 @@ const ShivkhoriRegistration = () => {
                 ))}
 
 
-                <button type="submit">Register</button>
+                <button type="submit" style={{marginBottom:"10px"}}>Register</button>
             </form>
+            </div>
+            <footer className={styles.footer}>
+        <p>&copy; 2024 Shiv Khori Shrine Board. All rights reserved.</p>
+      </footer>
         </div>
         
     );
