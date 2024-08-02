@@ -1,6 +1,8 @@
 import React, { useEffect,useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './ThankYou.module.css';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const ShivkhoriRegistration = () => {
     const stateDistrictData = {
         "Andhra Pradesh": ["Anantapur", "Chittoor", "East Godavari", "Guntur", "Kadapa", "Krishna", "Kurnool", "Nellore", "Prakasam", "Srikakulam", "Visakhapatnam", "Vizianagaram", "West Godavari"],
@@ -52,9 +54,10 @@ const ShivkhoriRegistration = () => {
         aadharFront: null,
         aadharBack: null,
     });
+    const [error, setError] = useState(false);
     const [personsFields, setPersonsFields] = useState([]);
     const navigate = useNavigate();
-
+    const [loading, setLoading] = useState(false);
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({
@@ -63,8 +66,13 @@ const ShivkhoriRegistration = () => {
         });
     };
 
+   
     const handleFileChange = (e) => {
         const { name, files } = e.target;
+        if (files[0] && files[0].size > 5 * 1024 * 1024) {
+            toast.error('File size should be less than 5MB');
+            return;
+        }
         setFormData({
             ...formData,
             [name]: files[0]
@@ -125,8 +133,12 @@ const ShivkhoriRegistration = () => {
     }, [formData.state]);
 
    
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
+        setError(false);
+
         const formDataToSend = new FormData();
         for (const key in formData) {
             if (key === 'additionalPersons') {
@@ -137,141 +149,155 @@ const ShivkhoriRegistration = () => {
         }
         formDataToSend.append('aadharFront', formData.aadharFront);
         formDataToSend.append('aadharBack', formData.aadharBack);
-    
+
+        let redirectTimeout = setTimeout(() => {
+            if (loading) {
+                toast.error('Something went wrong. Please try again.');
+                setError(true);
+                setLoading(false);
+            }
+        }, 40000);
+
         try {
             const response = await fetch('http://16.16.187.232/api/yatra/submit', {
                 method: 'POST',
                 body: formDataToSend,
             });
+
+            clearTimeout(redirectTimeout);
+
             if (response.ok) {
                 const data = await response.json();
                 if (data && data.data) {
                     const registrationNumber = data.data;
-                    console.log("Registration successful");
                     navigate(`/thank-you?registration_number=${registrationNumber}`);
-                } 
+                }
             } else {
-                console.error('Registration failed');
+                toast.error('Registration failed');
+                setError(true);
             }
         } catch (error) {
-            console.error('Error:', error);
+            toast.error('Something went wrong. Please try again.');
+            setError(true);
+        } finally {
+            setLoading(false);
         }
     };
-
     return (
-       
-        <div className="container">
-            <div> 
-            <header className={styles.header}>
-        <img src="https://www.shivkhori.in/images/logo.png" alt="Shiv Khori Logo" />
-      </header>
-      <h1>Shiv Khori Yatra Registration</h1>
-            <form onSubmit={handleSubmit}>
-                <label htmlFor="name">Name:</label>
-                <input type="text" id="name" name="name" value={formData.name} onChange={handleInputChange} required />
+        <div>
+        <ToastContainer />
+        {loading ? (
+            <div className={styles.loader}>
+                <div className={styles.spinner}></div>
+            </div>
+        ) : (
+            <>
+                <div className='container'>
+                    <header className={styles.header}>
+                        <img src="https://www.shivkhori.in/images/logo.png" alt="Shiv Khori Logo" />
+                    </header>
+                    <h1>Shiv Khori Yatra Registration</h1>
+                    <form onSubmit={handleSubmit}>
+                        <label htmlFor="name">Name:</label>
+                        <input type="text" id="name" name="name" value={formData.name} onChange={handleInputChange} required />
 
-                <label htmlFor="phone">Phone Number:</label>
-                <input type="text" id="phone" name="phone" value={formData.phone} onChange={handleInputChange} minLength="10" maxLength="10" required />
+                        <label htmlFor="phone">Phone Number:</label>
+                        <input type="text" id="phone" name="phone" value={formData.phone} onChange={handleInputChange} minLength="10" maxLength="10" required />
 
-                <label htmlFor="gender">Gender:</label>
-                <select id="gender" name="gender" value={formData.gender} onChange={handleInputChange} required>
-                    <option value="">Select Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="others">Others</option>
-                </select>
-
-                <label htmlFor="state">State:</label>
-                <select id="state" name="state" value={formData.state} onChange={populateDistricts}>
-                    <option value="">Select State</option>
-                </select>
-
-                <label htmlFor="district">District:</label>
-                <select id="district" name="district" value={formData.district} onChange={handleInputChange}>
-                    <option value="">Select District</option>
-                </select>
-
-                <label htmlFor="age">Age:</label>
-                <input type="number" id="age" name="age" value={formData.age} onChange={handleInputChange} min="4" max="100" />
-
-                <div className="upload-aadhar-container">
-                    <h3>Upload Aadhar Card</h3>
-
-                    <label htmlFor="aadharFront">Upload Aadhar Front:</label>
-                    <input type="file" id="aadharFront" name="aadharFront" accept="image/*" onChange={handleFileChange} required />
-
-                    <label htmlFor="aadharBack">Upload Aadhar Back:</label>
-                    <input type="file" id="aadharBack" name="aadharBack" accept="image/*" onChange={handleFileChange} required />
-                </div>
-
-                <label htmlFor="numPersons">No. of persons with you:</label>
-                <select id="numPersons" name="numPersons" value={formData.numPersons} onChange={handleNumPersonsChange} required>
-                    <option value="">Select Number</option>
-                    {[...Array(5).keys()].map(i => (
-                        <option key={i} value={i}>{i}</option>
-                    ))}
-                </select>
-
-              
-                {personsFields.map((_, index) => (
-                    <div key={index}>
-                        <h3>Person {index + 1}</h3>
-                        <label htmlFor={`name${index}`}>Name:</label>
-                        <input
-                            type="text"
-                            id={`name${index}`}
-                            name={`name${index}`}
-                            value={formData.additionalPersons[index]?.name || ''}
-                            onChange={(e) => handleAdditionalPersonChange(index, 'name', e.target.value)}
-                            placeholder="Enter Name"
-                            required
-                        /><br /><br />
-                        <label htmlFor={`age${index}`}>Age:</label>
-                        <input
-                            type="number"
-                            id={`age${index}`}
-                            name={`age${index}`}
-                            value={formData.additionalPersons[index]?.age || ''}
-                            onChange={(e) => handleAdditionalPersonChange(index, 'age', e.target.value)}
-                            placeholder="Enter Age"
-                            required
-                        /><br /><br />
-                        <label htmlFor={`phone${index}`}>Phone Number:</label>
-                        <input
-                            type="text"
-                            id={`phone${index}`}
-                            name={`phone${index}`}
-                            value={formData.additionalPersons[index]?.phone || ''}
-                            onChange={(e) => handleAdditionalPersonChange(index, 'phone', e.target.value)}
-                            placeholder="Enter Your Contact Number"
-                            required
-                        /><br /><br />
-                        <label htmlFor={`gender${index}`}>Gender:</label>
-                        <select
-                            id={`gender${index}`}
-                            name={`gender${index}`}
-                            value={formData.additionalPersons[index]?.gender || ''}
-                            onChange={(e) => handleAdditionalPersonChange(index, 'gender', e.target.value)}
-                            required
-                        >
+                        <label htmlFor="gender">Gender:</label>
+                        <select id="gender" name="gender" value={formData.gender} onChange={handleInputChange} required>
                             <option value="">Select Gender</option>
                             <option value="male">Male</option>
                             <option value="female">Female</option>
                             <option value="others">Others</option>
-                        </select><br /><br />
-                    </div>
-                ))}
+                        </select>
 
+                        <label htmlFor="state">State:</label>
+                        <select id="state" name="state" value={formData.state} onChange={populateDistricts}>
+                            <option value="">Select State</option>
+                        </select>
 
-                <button type="submit" style={{marginBottom:"10px"}}>Register</button>
-            </form>
-            </div>
-            <footer className={styles.footer}>
-        <p>&copy; 2024 Shiv Khori Shrine Board. All rights reserved.</p>
-      </footer>
-        </div>
-        
-    );
+                        <label htmlFor="district">District:</label>
+                        <select id="district" name="district" value={formData.district} onChange={handleInputChange}>
+                            <option value="">Select District</option>
+                        </select>
+
+                        <label htmlFor="age">Age:</label>
+                        <input type="number" id="age" name="age" value={formData.age} onChange={handleInputChange} min="4" max="100" />
+
+                        <div className="upload-aadhar-container">
+                            <h3>Upload Aadhar Card</h3>
+
+                            <label htmlFor="aadharFront">Upload Aadhar Front:</label>
+                            <input type="file" id="aadharFront" name="aadharFront" accept="image/*" onChange={handleFileChange} required />
+
+                            <label htmlFor="aadharBack">Upload Aadhar Back:</label>
+                            <input type="file" id="aadharBack" name="aadharBack" accept="image/*" onChange={handleFileChange} required />
+                        </div>
+
+                        <label htmlFor="numPersons">No. of persons with you:</label>
+                        <select id="numPersons" name="numPersons" value={formData.numPersons} onChange={handleNumPersonsChange} required>
+                            <option value="">Select Number</option>
+                            {[...Array(5).keys()].map(i => (
+                                <option key={i} value={i}>{i}</option>
+                            ))}
+                        </select>
+
+                        {personsFields.map((_, index) => (
+                            <div key={index}>
+                                <h3>Person {index + 1}</h3>
+                                <label htmlFor={`name${index}`}>Name:</label>
+                                <input
+                                    type="text"
+                                    id={`name${index}`}
+                                    name={`name${index}`}
+                                    value={formData.additionalPersons[index]?.name || ''}
+                                    onChange={(e) => handleAdditionalPersonChange(index, 'name', e.target.value)}
+                                    placeholder="Enter Name"
+                                    required
+                                /><br /><br />
+                                <label htmlFor={`age${index}`}>Age:</label>
+                                <input
+                                    type="number"
+                                    id={`age${index}`}
+                                    name={`age${index}`}
+                                    value={formData.additionalPersons[index]?.age || ''}
+                                    onChange={(e) => handleAdditionalPersonChange(index, 'age', e.target.value)}
+                                    placeholder="Enter Age"
+                                    required
+                                /><br /><br />
+                                <label htmlFor={`phone${index}`}>Phone Number:</label>
+                                <input
+                                    type="text"
+                                    id={`phone${index}`}
+                                    name={`phone${index}`}
+                                    value={formData.additionalPersons[index]?.phone || ''}
+                                    onChange={(e) => handleAdditionalPersonChange(index, 'phone', e.target.value)}
+                                    placeholder="Enter Your Contact Number"
+                                    required
+                                /><br /><br />
+                                <label htmlFor={`gender${index}`}>Gender:</label>
+                                <select
+                                    id={`gender${index}`}
+                                    name={`gender${index}`}
+                                    value={formData.additionalPersons[index]?.gender || ''}
+                                    onChange={(e) => handleAdditionalPersonChange(index, 'gender', e.target.value)}
+                                    required
+                                >
+                                    <option value="">Select Gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="others">Others</option>
+                                </select><br /><br />
+                            </div>
+                        ))}
+                        <button type="submit">Submit</button>
+                    </form>
+                </div>
+            </>
+        )}
+    </div>
+);
 };
 
 export default ShivkhoriRegistration;
